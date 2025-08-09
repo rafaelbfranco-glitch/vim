@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: VIM RAG MVP Actions
+  version: "0.1.0"
+servers:
+  - url: https://YOUR_DEPLOY_URL   # <- replace after deploy (e.g., https://vim-rag.onrender.com)
+paths:
+  /ingest:
+    post:
+      summary: Ingest a new knowledge chunk
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topic: { type: string, description: "Topic label (e.g., blocked_workflow, COA)" }
+                content: { type: string, description: "What to learn/store (clean summary, decisions, code explanations)" }
+                source: { type: string, description: "Optional link or reference of origin (chat URL, doc id)" }
+                tags:
+                  type: array
+                  items: { type: string }
+                country: { type: string }
+                sap_release: { type: string }
+                vim_release: { type: string }
+                created_at: { type: string, description: "ISO datetime; if omitted, server will set" }
+              required: [content]
+      responses:
+        "200":
+          description: OK
+  /search:
+    post:
+      summary: Semantic search over stored knowledge
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query: { type: string, description: "User question to embed and search for" }
+                k: { type: integer, default: 6 }
+                topic: { type: string }
+                country: { type: string }
+                sap_release: { type: string }
+                vim_release: { type: string }
+                tags:
+                  type: array
+                  items: { type: string }
+                min_score: { type: number, description: "Optional threshold for similarity (0-1 range, cosine)" }
+              required: [query]
+      responses:
+        "200":
+          description: OK
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-App-Key
