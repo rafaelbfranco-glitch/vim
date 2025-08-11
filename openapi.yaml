@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  title: VIM RAG Backend v2 — Actions
+  version: "0.2.0"
+servers:
+  - url: https://YOUR_DEPLOY_URL   # replace with your Render URL (e.g., https://vim-yoaf.onrender.com)
+paths:
+  /ingest:
+    post:
+      summary: Ingest a new knowledge item (note or code)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, description: "Short title to display in search results" }
+                topic: { type: string, description: "Topic label (e.g., blocked_workflow, coa, drc)" }
+                content: { type: string, description: "Main text to embed (summary or full)" }
+                summary: { type: string, description: "Optional short summary for display" }
+                content_kind: { type: string, description: "note | code | doc", default: "note" }
+                language: { type: string, description: "e.g., abap, python, pt-BR" }
+                source: { type: string, description: "Optional link or origin id (chat URL, doc id)" }
+                tags:
+                  type: array
+                  items: { type: string }
+                country: { type: string }
+                sap_release: { type: string }
+                vim_release: { type: string }
+                customer: { type: string }
+                project: { type: string }
+                created_at: { type: string, description: "ISO datetime; if omitted, server will set" }
+                dedup: { type: boolean, default: true }
+              required: [content]
+      responses:
+        "200":
+          description: OK
+  /search:
+    post:
+      summary: Semantic search over stored knowledge
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query: { type: string, description: "User question to embed and search for" }
+                k: { type: integer, default: 6 }
+                min_score: { type: number, description: "Optional threshold (0-1 range, cosine)" }
+                topic: { type: string }
+                country: { type: string }
+                sap_release: { type: string }
+                vim_release: { type: string }
+                tags:
+                  type: array
+                  items: { type: string }
+                content_kind: { type: string, description: "note | code | doc" }
+                language: { type: string, description: "e.g., abap, python, pt-BR" }
+                customer: { type: string }
+                project: { type: string }
+              required: [query]
+      responses:
+        "200":
+          description: OK
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-App-Key
